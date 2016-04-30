@@ -9,7 +9,7 @@ var db = new JsonDB("db", true, true);
 function respond() {
   var request = JSON.parse(this.req.chunks[0]);
 
-  admins = [''];
+  admins = [];
   user_id = request.sender_id;
   user_name = request.name;
   user_info = [user_id, user_name];

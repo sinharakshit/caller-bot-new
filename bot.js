@@ -1,16 +1,13 @@
 var HTTPS = require('https');
 var cool = require('cool-ascii-faces');
-
 var botID = process.env.BOT_ID;
-
 var JsonDB = require('node-json-db');
 var db = new JsonDB("db", true, true);
-
 var request = require('request');
 
-var your_clan_name = "My Clan Name";
+var my_clan_name = "My clan";
 
-function is_admin(user_id){
+function is_admin(user_id) {
   admins = [];
   do_it = false;
   for (j = 0; j < admins.length; j++) {
@@ -20,6 +17,7 @@ function is_admin(user_id){
   }
   return do_it;
 }
+
 function clash_caller(code) {
   db.push('/clash_caller/code', code, true);
   this.cc = code;
@@ -31,7 +29,7 @@ clash_caller.prototype = {
     request.post('http://clashcaller.com/api.php', {
       form: {
         'REQUEST': 'CREATE_WAR',
-        'cname': your_clan_name,
+        'cname': my_clan_name,
         'ename': enemy_name,
         'size': war_size,
         'timer': 6,
@@ -80,8 +78,23 @@ clash_caller.prototype = {
       }
     }, function(err, http, body) {
       b_ = JSON.parse(body);
+      for (i = 0; i < 50; i++) {
+        obj_ = {
+          index: i + 1,
+          calls: '',
+          stars: 0
+        }
+        db.push("/calls/roster[" + i + "]", obj_, true);
+      }
       db.delete('/clash_caller/calls');
       db.push('/clash_caller/calls[]', b_.calls);
+      for (c in b_.calls) {
+        st_ = parseInt(b_.calls[c].stars) - 2;
+        if (st_ <= 0) st_ = 0;
+        this_ = "/calls/roster[" + (b_.calls[c].posy) + "]";
+        db.push(this_ + "/calls", b_.calls[c].playername);
+        db.push(this_ + "/stars", st_);
+      }
     });
   },
   delete_call: function(number) {
@@ -94,6 +107,19 @@ clash_caller.prototype = {
       }
     }, function(err, http, body) {
       console.log("Deleted calls on #" + number);
+    });
+  },
+  update_stars: function(number, stars) {
+    request.post('http://clashcaller.com/api.php', {
+      form: {
+        'REQUEST': 'UPDATE_STARS',
+        'warcode': this.cc,
+        'posy': number - 1,
+        'posx': 0,
+        'value': stars + 2
+      }
+    }, function(err, http, body) {
+      console.log("Logged " + stars + " stars on #" + number);
     });
   }
 }
@@ -132,22 +158,31 @@ function respond() {
           num_ = parseInt(input.match(regex_[index])[1]);
           this_ = "/calls/roster[" + (num_ - 1) + "]";
           cc = db.getData(this_);
+          cc_.get_full_update();
           if (cc.calls == '') {
             db.push(this_ + "/calls", user_info, true);
             cc_.update_call(num_, user_name);
             message = "Called #" + num_ + " for " + user_name;
           } else {
-            message = "Target #" + num_ + " already called by " + cc.calls[1];
+            message = "Target #" + num_ + " already called by " + cc.calls;
           }
           break;
         case 'start_war':
           do_it = is_admin(user_id);
           if (do_it) {
+            for (i = 0; i < 50; i++) {
+              obj_ = {
+                index: i + 1,
+                calls: '',
+                stars: 0
+              }
+              db.push("/calls/roster[" + i + "]", obj_, true);
+            }
             num_ = parseInt(input.match(regex_[index])[1]);
             enemy_name_ = input.match(regex_[index])[2];
             cc_.start_war(num_, enemy_name_);
             message = "Started new clash caller. Type /cc to view";
-          }else{
+          } else {
             message = "Only admins can create new caller, " + user_name;
           }
           break;
@@ -161,33 +196,40 @@ function respond() {
           num_ = parseInt(input.match(regex_[index])[1]);
           cc_.delete_call(num_);
           this_ = "/calls/roster[" + (num_ - 1) + "]";
-          cc = db.getData(this_);
           db.push(this_ + "/calls", '', true);
+          db.push(this_ + "/stars", 0, true);
+          cc_.get_full_update();
           message = "Calls on #" + num_ + " deleted";
           break;
+
         case 'get_call':
+          cc_.get_full_update();
           num_ = parseInt(input.match(regex_[index])[1]);
           this_ = "/calls/roster[" + (num_ - 1) + "]";
           cc = db.getData(this_);
           if (cc.calls == '') {
             message = "#" + num_ + " open";
           } else {
-            message = "#" + num_ + " called by " + cc.calls[1];
+            message = "#" + num_ + " called by " + cc.calls;
           }
           break;
 
         case 'get_calls':
-          cc = db.getData("/calls/roster");
-          ret_ = "";
+          cc_.get_full_update();
+          cc = db.getData("/clash_caller/calls[0]");
+          ret_ = [];
           for (i in cc) {
-            if (cc[i].calls != '') {
-              ret_ += cc[i].index + " - " + cc[i].calls[1] + "\n";
-            }
+            in_ = parseInt(cc[i].posy) + 1;
+            ret_[in_] = cc[i].playername;
           }
-          if (ret_ == '') {
+          message_ = [];
+          for (i in ret_) {
+            message_.push("#" + i + " - " + ret_[i]);
+          }
+          if (message_.length == 0) {
             message = 'No calls yet';
           } else {
-            message = ret_;
+            message = message_.join("\n");
           }
           break;
 
@@ -195,23 +237,26 @@ function respond() {
           num_ = parseInt(input.match(regex_[index])[1]);
           stars_ = parseInt(input.match(regex_[index])[2]);
           this_ = "/calls/roster[" + (num_ - 1) + "]";
+          cc_.update_stars(num_, stars_);
           db.push(this_ + "/stars", stars_);
           db.push(this_ + "/calls", user_info);
+          cc_.get_full_update();
           message = "Logged " + stars_ + " stars on " + num_;
           break;
 
         case 'get_stats':
+          cc_.get_full_update();
           cc = db.getData("/calls/roster");
-          ret_ = "";
+          ret_ = [];
           for (i in cc) {
-            if (cc[i].stars > '') {
-              ret_ += cc[i].index + " - " + cc[i].stars + " stars by " + cc[i].calls[1] + "\n";
+            if (cc[i].stars > 0) {
+              ret_.push("#" + cc[i].index + " - " + cc[i].stars + " stars by " + cc[i].calls);
             }
           }
-          if (ret_ == '') {
+          if (ret_.length == 0) {
             message = 'No logged attacks yet';
           } else {
-            message = ret_;
+            message = ret_.join("\n");
           }
           break;
 
@@ -233,7 +278,7 @@ function respond() {
           break;
 
         case 'help':
-          message =  "/cc - Get clash caller link\n" +
+          message = "/cc - Get clash caller link\n" +
             "/call # - Call a target\n" +
             "/delete call # - Delete call on target\n" +
             "/get call # - Get call on target\n" +

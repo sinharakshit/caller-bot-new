@@ -66,7 +66,7 @@ clash_caller.prototype = {
         'cname': my_clan_name,
         'ename': enemy_name,
         'size': war_size,
-        'timer': 6,
+        'timer': war_call_timer,
         'searchable': 0
       }
     }, function(err, http, body) {
@@ -119,7 +119,7 @@ clash_caller.prototype = {
 
       check_time = b_.general.checktime;
       check_time_ = new Date(b_.general.checktime).getTime();
-      war_start_ = new Date(b_.general.starttime).getTime() - get_hours(1);
+      war_start_ = new Date(b_.general.starttime).getTime();
 
       for(c in b_.calls){
         call_time = b_.calls[c].calltime;

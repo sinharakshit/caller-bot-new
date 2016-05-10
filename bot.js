@@ -48,7 +48,7 @@ function rand(min, max) {
 }
 
 function is_admin(user_id){
-  admins = ['17624791', '19208102', '16450105', '18421801', '7542037', '26392945', '19566769', '25167010', '33665734'];
+  admins = [];
   return in_array(admins, user_id);
 }
 
@@ -63,7 +63,7 @@ clash_caller.prototype = {
     request.post('http://clashcaller.com/api.php', {
       form: {
         'REQUEST': 'CREATE_WAR',
-        'cname': 'Reddit Mu',
+        'cname': my_clan_name,
         'ename': enemy_name,
         'size': war_size,
         'timer': 6,
@@ -216,9 +216,6 @@ function respond() {
           } else {
             message = "Target #" + num_ + " already called by " + cc.calls;
           }
-          break;
-        case 'sexy_pic':
-          message = "https://groupme.com/join_group/21845882/OFir1M";
           break;
 
         case 'start_war':
@@ -384,8 +381,7 @@ function respond() {
             "/attacked # for # stars - Log attack done on target\n" +
             "/get stats - Get logged attacks details\n" +
             "/help - Show this\n" +
-            "/cool guy - cool guy face\n" +
-            "/nsfw - ;)";
+            "/cool guy - cool guy face";
           break;
 
         case 'cool':

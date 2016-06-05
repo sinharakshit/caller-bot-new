@@ -8,7 +8,7 @@ var request = require('request');
 var in_array = require('in-array');
 
 
-var my_clan_name = "Reddit Mu";
+var my_clan_name = "";
 var war_call_timer = 6;
 
 var cc_ = require('./clash_caller.js');

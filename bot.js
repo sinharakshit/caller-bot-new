@@ -119,7 +119,7 @@ function respond() {
             db_old_cc_ = fetch_cc();
             new_cc_ = input.match(regex_[index])[1];
             save_cc(new_cc_);
-            message_ = "Old code -" + git  + "-\nNew code -" + new_cc_ + "-"
+            message_ = "Old code -" + db_old_cc_  + "-\nNew code -" + new_cc_ + "-"
             message_.post_text();
           } else {
             ("Only admins can set Clash Caller code, @" + user_name).post_text();

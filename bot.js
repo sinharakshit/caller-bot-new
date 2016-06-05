@@ -28,7 +28,7 @@ function rand(min, max) {
 }
 
 function is_admin(user_id) {
-  admins = ['17624791', '19208102', '16450105', '18421801', '7542037', '26392945', '19566769', '25167010', '33665734'];
+  admins = [''];
   return in_array(admins, user_id);
 }
 
@@ -73,9 +73,7 @@ function respond() {
     get_call: /^\/get call (\d+)\s*$/,
     get_calls: /^\/get calls\s*$/,
     attack: /^\/attacked (\d+) for (\d+) star[s]?\s*$/,
-    get_stats: /^\/get stats\s*$/,
     help: /^\/help\s*(.*)$/,
-    cool: /^\/cool guy\s*$/,
     start_war: /^\/start war (\d+)\s+(.*)$/,
     prof_id: /^\/me\s*$/,
     cc_url: /^\/cc\s*$/,
@@ -100,9 +98,6 @@ function respond() {
         case 'prof_id':
           message_ = user_name + "'s id: " + user_id;
           message_.post_text();
-          break;
-        case 'sexy_pic':
-          "https://groupme.com/join_group/21845882/OFir1M".post_text();
           break;
         case 'start_war':
           do_it = is_admin(user_id);

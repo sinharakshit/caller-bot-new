@@ -7,7 +7,6 @@ const fs = require('fs');
 var request = require('request');
 var in_array = require('in-array');
 
-
 var my_clan_name = "Your clan name here";
 var war_call_timer = 6;
 var user_name = "";

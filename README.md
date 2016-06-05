@@ -43,7 +43,7 @@ var war_call_timer = 6; // Line 11, in hours
 ```
  - In terminal, in your directory where you made the app, create a config variable on heroku using:
 ```
-heroku config: set BOT_ID='YOUR_BOT_ID_HERE'
+heroku config:set BOT_ID='YOUR_BOT_ID_HERE'
 ```
  - After setting up the variable, upload the files using:
 ```

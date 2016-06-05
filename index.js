@@ -2,13 +2,8 @@ var http, director, cool, bot, router, server, port, request;
 
 http = require('http');
 director = require('director');
-cool = require('cool-ascii-faces');
 bot = require('./bot.js');
 request = require('request');
-
-
-var JsonDB = require('node-json-db');
-var db = new JsonDB("db", true, true);
 
 router = new director.http.Router({
   '/': {

@@ -8,29 +8,21 @@ var request = require('request');
 var in_array = require('in-array');
 
 
-var my_clan_name = "Reddit Mu";
+var my_clan_name = "Your clan name here";
 var war_call_timer = 6;
 var user_name = "";
 var user_id = "";
 var caller_code = "";
 
-
 String.prototype.post_text = function() {
   console.log("GM: " + this.valueOf());
-
   request.post('https://api.groupme.com/v3/bots/post', {
     form: {
       "bot_id": botID,
       "text": this.valueOf()
     }
   });
-
 }
-String.prototype.post_image = function() {
-  console.log("GroupMe Image: " + this);
-}
-
-
 function hm(t) {
   t = Math.abs(t);
   var h = Math.floor(t / 3600000);
@@ -48,7 +40,7 @@ function hm(t) {
 }
 
 function fetch_cc() {
-  json = fs.readFileSync('cc.json');
+  json = fs.readFileSync('cc.json', 'utf-8');
   ob = JSON.parse(json);
   return ob.code;
 }
@@ -135,6 +127,7 @@ exports.cc_url = function() {
   cc_code_ = fetch_cc();
   gm_text_ = 'http://clashcaller.com/war/' + cc_code_;
   gm_text_.post_text();
+  return gm_text_;
 }
 exports.cc_code = function() {
   cc_code_ = fetch_cc();
@@ -152,6 +145,10 @@ exports.delete_call = function(number) {
       'warcode': caller_code
     }
   }, function(err, http, body) {
+    if(body.match(/Invalid War ID/)){
+      ("Invalid war ID: " + caller_code).post_text();
+      return;
+    }
     b_ = JSON.parse(body);
     bases_ = get_bases(b_)[number - 1];
     posx_ = bases_.length;
@@ -210,7 +207,10 @@ exports.update_stars = function(number, stars) {
       'warcode': caller_code
     }
   }, function(err, http, body) {
-    console.log(body);
+    if(body.match(/Invalid War ID/)){
+      ("Invalid war ID: " + caller_code).post_text();
+      return;
+    }
     b_ = JSON.parse(body);
     bases_ = get_bases(b_)[number - 1];
     posx_ = bases_.length;
@@ -248,8 +248,11 @@ exports.call = function(number, user_name) {
       'warcode': caller_code
     }
   }, function(err, http, body) {
+    if(body.match(/Invalid War ID/)){
+      ("Invalid war ID: " + caller_code).post_text();
+      return;
+    }
     b_ = JSON.parse(body);
-
     called_ = get_calls(b_)[number];
     if (typeof called_ == 'undefined') {
       request.post('http://clashcaller.com/api.php', {
@@ -276,6 +279,10 @@ exports.get_call = function(number) {
       'warcode': caller_code
     }
   }, function(err, http, body) {
+    if(body.match(/Invalid War ID/)){
+      ("Invalid war ID: " + caller_code).post_text();
+      return;
+    }
     b_ = JSON.parse(body);
     called_ = get_calls(b_)[number];
     if (typeof called_ == 'undefined') {
@@ -297,8 +304,11 @@ exports.get_calls = function() {
       'warcode': caller_code
     }
   }, function(err, http, body) {
+    if(body.match(/Invalid War ID/)){
+      ("Invalid war ID: " + caller_code).post_text();
+      return;
+    }
     b_ = JSON.parse(body);
-
     ret_ = get_calls(b_);
     message_ = [];
 

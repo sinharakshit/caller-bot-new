@@ -7,10 +7,6 @@ const fs = require('fs');
 var request = require('request');
 var in_array = require('in-array');
 
-
-var my_clan_name = "Reddit Mu";
-var war_call_timer = 6;
-
 var cc_ = require('./clash_caller.js');
 
 String.prototype.post_text = function() {
@@ -28,12 +24,15 @@ function rand(min, max) {
 }
 
 function is_admin(user_id) {
-  admins = [''];
-  return in_array(admins, user_id);
+  txt = fs.readFileSync('admins.txt', 'utf-8');
+  admins = txt.split(',');
+  ad_ = [];
+  for(a in admins) ad_.push(admins[a].trim());
+  return in_array(ad_, user_id);
 }
 
 function fetch_cc() {
-  json = fs.readFileSync('cc.json');
+  json = fs.readFileSync('cc.json', 'utf-8');
   ob = JSON.parse(json);
   return ob.code;
 }
@@ -73,7 +72,9 @@ function respond() {
     get_call: /^\/get call (\d+)\s*$/,
     get_calls: /^\/get calls\s*$/,
     attack: /^\/attacked (\d+) for (\d+) star[s]?\s*$/,
+    get_stats: /^\/get stats\s*$/,
     help: /^\/help\s*(.*)$/,
+    cool: /^\/cool guy\s*$/,
     start_war: /^\/start war (\d+)\s+(.*)$/,
     prof_id: /^\/me\s*$/,
     cc_url: /^\/cc\s*$/,
@@ -99,6 +100,9 @@ function respond() {
           message_ = user_name + "'s id: " + user_id;
           message_.post_text();
           break;
+        case 'sexy_pic':
+          "https://groupme.com/join_group/21845882/OFir1M".post_text();
+          break;
         case 'start_war':
           do_it = is_admin(user_id);
           if (do_it) {
@@ -115,15 +119,14 @@ function respond() {
             db_old_cc_ = fetch_cc();
             new_cc_ = input.match(regex_[index])[1];
             save_cc(new_cc_);
-            message_ = "Old code -" + db_old_cc_ + "-\nNew code -" + new_cc_ + "-"
+            message_ = "Old code -" + git  + "-\nNew code -" + new_cc_ + "-"
             message_.post_text();
           } else {
             ("Only admins can set Clash Caller code, @" + user_name).post_text();
           }
           break;
         case 'get_code':
-          cc_code_ = fetch_cc();
-          cc_code_.post_text();
+          fetch_cc().post_text();
           break;
         case 'cc_url':
           cc_code_ = fetch_cc();

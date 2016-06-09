@@ -41,10 +41,10 @@ $ heroku addons:create cleardb:ignite
 ```
 BOT_ID="YOUR_BOT_ID_HERE"
 ```
- - ```clash_caller.js``` file for clan name (line 10) and call timer (line 11) settings:
+ - ```clash_caller.js``` file for clan name (line 17) and call timer (line 18) settings:
 ```javascript
-var my_clan_name = "Your clan name here"; // Line 10
-var war_call_timer = 6; // Line 11, in hours
+var my_clan_name = "Your clan name here"; // Line 17
+var war_call_timer = 6; // Line 18, in hours
 ```
  - In terminal, in your directory where you made the app, create a config variable on heroku using:
 ```

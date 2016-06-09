@@ -6,9 +6,16 @@ const fs = require('fs');
 
 var request = require('request');
 var in_array = require('in-array');
+var mysql = require('mysql');
+var async = require('async');
+var moment = require('moment');
 
-var my_clan_name = "Your clan name here";
-var war_call_timer = 6;
+db_url = process.env.CLEARDB_DATABASE_URL;
+var conn = mysql.createConnection(db_url);
+
+
+var my_clan_name = "Your clan name here"; // Your clan name
+var war_call_timer = 6; // Timer for calls. How long until a call expires.
 var user_name = "";
 var user_id = "";
 var caller_code = "";
@@ -22,6 +29,12 @@ String.prototype.post_text = function() {
     }
   });
 }
+
+String.prototype.save_log = function() {
+  console.log("Log: " + this.valueOf());
+  conn.query('INSERT INTO `log` (message, time) VALUES (?,?)', [this.valueOf(), (new Date().getTime())]);
+}
+
 function hm(t) {
   t = Math.abs(t);
   var h = Math.floor(t / 3600000);
@@ -52,6 +65,9 @@ function save_cc(c) {
   fs.writeFileSync('cc.json', json);
 }
 
+function save_code_db(code){
+  conn.query('UPDATE `clash_caller` SET caller_code = ?', [code]);
+}
 function get_hours(n) {
   return 1000 * 60 * 60 * n;
 }
@@ -121,7 +137,33 @@ function get_bases(b_) {
   }
   return ret_;
 }
+exports.is_user_admin = function(user_id){
 
+  txt = fs.readFileSync('admins.txt', 'utf-8');
+  admins = txt.split(',');
+  ad_ = [];
+  for (a in admins) ad_.push(admins[a].trim());
+  return in_array(ad_, user_id);
+
+}
+exports.get_log = function(){
+  conn.query('SELECT * FROM `log`', function(err, res, fld){
+    message_ = [];
+    if(res.length > 0){
+      for(i in res){
+        message_.push(moment(res[i].time).format("MMMM Do, h:mm:ss a") + ": " + res[i].message);
+      }
+      message_.join("\n").post_text();
+    }else{
+      "Nothing logged".post_text();
+    }
+  });
+}
+exports.clear_log = function(){
+  conn.query('DELETE FROM `log` WHERE 1', function(err, res, fld){
+    "Log cleared".post_text();
+  });
+}
 exports.cc_url = function() {
   cc_code_ = fetch_cc();
   gm_text_ = 'http://clashcaller.com/war/' + cc_code_;
@@ -138,6 +180,10 @@ exports.config = function(data) {
   user_id = data.id;
 }
 exports.delete_call = function(number) {
+  if(number > 50){
+    "Invalid number".post_text();
+    return;
+  }
   request.post('http://clashcaller.com/api.php', {
     form: {
       'REQUEST': 'GET_FULL_UPDATE',
@@ -150,13 +196,16 @@ exports.delete_call = function(number) {
     }
     b_ = JSON.parse(body);
     bases_ = get_bases(b_)[number - 1];
-    posx_ = bases_.length;
-    found = false
-    for (j in bases_) {
-      console.log(bases_[j]);
-      if (bases_[j].playername == user_name && !found) {
-        posx_ = bases_[j].posx;
-        found = true;
+    found = false;
+    posx_ = 0;
+    if(typeof bases_ != 'undefined'){
+      posx_ = bases_.length;
+      for (j in bases_) {
+        console.log(bases_[j]);
+        if (bases_[j].playername == user_name && !found) {
+          posx_ = bases_[j].posx;
+          found = true;
+        }
       }
     }
     if (found) {
@@ -169,6 +218,7 @@ exports.delete_call = function(number) {
         }
       }, function(err, http, body) {
         gm_text_ = "Deleted calls on #" + number + " by " + user_name;
+        gm_text_.save_log();
         gm_text_.post_text();
       });
     } else {
@@ -193,13 +243,17 @@ exports.start_war = function(war_size, enemy_name) {
     war_test = /war\//;
     if (war_test.test(body)) {
       war_id = body.replace(/war\//, '');
-      save_cc(war_id);
+      save_code_db(war_id);
       gm_text_ = "Started new clash caller (" + war_id + "). Type:\n/cc - to view link";
       gm_text_.post_text();
     }
   });
 }
 exports.update_stars = function(number, stars) {
+  if(number > 50){
+    "Invalid number".post_text();
+    return;
+  }
   request.post('http://clashcaller.com/api.php', {
     form: {
       'REQUEST': 'GET_FULL_UPDATE',
@@ -212,13 +266,16 @@ exports.update_stars = function(number, stars) {
     }
     b_ = JSON.parse(body);
     bases_ = get_bases(b_)[number - 1];
-    posx_ = bases_.length;
-    found = false
-    for (j in bases_) {
-      console.log(bases_[j]);
-      if (bases_[j].playername == user_name && !found) {
-        posx_ = bases_[j].posx;
-        found = true;
+    found = false;
+    posx_ = 0;
+    if(typeof bases_ != 'undefined'){
+      posx_ = bases_.length;
+      for (j in bases_) {
+        console.log(bases_[j]);
+        if (bases_[j].playername == user_name && !found) {
+          posx_ = bases_[j].posx;
+          found = true;
+        }
       }
     }
     if (found) {
@@ -232,6 +289,7 @@ exports.update_stars = function(number, stars) {
         }
       }, function(err, http, body) {
         gm_text_ = "Logged " + stars + " stars on #" + number;
+        gm_text_.save_log();
         gm_text_.post_text();
       });
     } else {
@@ -240,7 +298,39 @@ exports.update_stars = function(number, stars) {
     }
   });
 }
+exports.update_timer = function(what, timer){
+  timer_regex_ = /([\d]{1,2})h([\d]{1,2})m/;
+  start_ = false;
+  if(timer_regex_.test(timer)){
+    start_ = ((what == 'start') ? 's' : ((what == 'end') ? 'e' : false));
+    mx_ = timer.match(timer_regex_);
+    mins_ = (parseInt(mx_[0]) * 60) + parseInt(mx_[1]);
+    if(start_){
+      request.post('http://clashcaller.com/api.php', {
+        form: {
+          'REQUEST': 'UPDATE_WAR_TIME',
+          'warcode': caller_code,
+          'start': start_,
+          'minutes': mins_
+        }
+      }, function(err, http, body) {
+        gm_text_ = "Updated war timer " + what + " to " + timer;
+        gm_text_.save_log();
+        gm_text_.post_text();
+      });
+    }else{
+      "Invalid war start status. Either put 'start' or 'end'".post_text();
+    }
+  }else{
+    "Invalid timer. Format: ##h##m".post_text();
+    return;
+  }
+}
 exports.call = function(number, user_name) {
+  if(number > 50){
+    "Invalid number".post_text();
+    return;
+  }
   request.post('http://clashcaller.com/api.php', {
     form: {
       'REQUEST': 'GET_FULL_UPDATE',
@@ -263,15 +353,35 @@ exports.call = function(number, user_name) {
         }
       }, function(err, http, body) {
         gm_text_ = "Called #" + number + " for " + user_name;
+        gm_text_.save_log();
         gm_text_.post_text();
       });
     } else {
-      gm_text_ = "#" + number + " called by " + called_.playername + " expiring in " + called_.expire;
-      gm_text_.post_text();
+      if(called_.stars > 0){
+        request.post('http://clashcaller.com/api.php', {
+          form: {
+            'REQUEST': 'APPEND_CALL',
+            'warcode': caller_code,
+            'posy': number - 1,
+            'value': user_name
+          }
+        }, function(err, http, body) {
+          gm_text_ = "Called #" + number + " for " + user_name;
+          gm_text_.save_log();
+          gm_text_.post_text();
+        });
+      }else{
+        gm_text_ = "#" + number + " called by " + called_.playername + " " + called_.expire;
+        gm_text_.post_text();
+      }
     }
   });
 }
 exports.get_call = function(number) {
+  if(number > 50){
+    "Invalid number".post_text();
+    return;
+  }
   request.post('http://clashcaller.com/api.php', {
     form: {
       'REQUEST': 'GET_FULL_UPDATE',

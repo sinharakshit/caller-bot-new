@@ -9,24 +9,29 @@
  - Create account on Heroku.com
  - Clone the code:
 ```
-git clone https://github.com/butttons/clash-caller.git caller-bot
+$ git clone https://github.com/butttons/clash-caller.git caller-bot
 ```
  - Go into directory:
 ```
-cd caller-bot
+$ cd caller-bot
 ```
  - Login into heroku:
 ```
-heroku login
+$ heroku login
 ```
  - Create the app:
 ```
-heroku create
+$ heroku create
 ```
  - This will return a link to your heroku app. Copy that. The link will be like:
 ```
 https://XXXXXX-XXXXX-XXXXX.herokuapp.com/
 ```
+  - Creating a database:
+```
+$ heroku addons:create cleardb:ignite
+```
+
  - Go to [GroupMe Developer Website](https://dev.groupme.com/) and log in using your GroupMe details.
  - Go to [GroupMe Bots page](https://dev.groupme.com/bots) and click on 'Create Bot'.
  - Set the group the bot will reside in, its name, and in the *Callback URL* field, put the heroku app link you got from above step (https://XXXXXX-XXXXX-XXXXX.herokuapp.com/)
@@ -51,21 +56,25 @@ git add .
 git commit -am "first push"
 git push heroku master
 ```
- - Thats it, you're bot is up. Type ```/help``` in your group to see the commands. If you have an exisiting clash caller going on type ```/set cc (code)``` to save it. To create new clash caller type ```/start war (war size) (enemy name)```
+ - Thats it, you're bot is up. Only thing is to set up the database. Do that by going to: ```https://XXXXXX-XXXXX-XXXXX.herokuapp.com/setup```
+ - After setting it up, type ```/help``` in your group to see the commands. You need to add admins before you put change default caller code. If you have an exisiting clash caller going on type ```/set cc (code)``` to save it. To create new clash caller type ```/start war (war size) (enemy name)```
+ - Go to the following routes to do the actions:
+```
+/setup - to set up database
+/cc - to view current caller
+/log - to view log
+```
 
 - - -
 
-### Creating admins and saving clash caller code ###
+### Creating admins ###
  - Assuming that you've set up the bot, and its working fine, its time to set admins.
  - Type ```/me``` in group to reveal your GroupMe ID.
  - Copy that ID and paste it in ```admins.txt``` file in csv format. Any amount of admins can be added. The format is:
 ```
 ID_OF_ADMIN_1,ID_OF_ADMIN_2,ID_OF_ADMIN_3
 ```
- - Edit ```cc.json``` file and put your clash caller code there:
-```json
-{"code":"XXXXX"}
-```
+
  - Now that its done, push these changes using:
 ```
 git add .

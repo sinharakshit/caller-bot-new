@@ -58,7 +58,6 @@ function save_log(message) {
   conn.query('INSERT INTO `log` (message, time) VALUES (?,?)', [message, (new Date().getTime())]);
 }
 
-
 function async_respond() {
   var request_ = JSON.parse(this.req.chunks[0]);
   if (typeof request_.sender_id != 'undefined') {
@@ -202,6 +201,48 @@ function async_respond() {
                     "/clear log - Clear log";
                 }
             }
+
+  for (index in regex_) {
+    if (regex_[index].test(input)) {
+      found_command = true;
+      console.log("COMMAND: ", index);
+      switch (index) {
+        case 'call':
+          num_ = parseInt(input.match(regex_[index])[1]);
+          cc_.call(num_, user_name);
+          break;
+        case 'call_for':
+          num_ = parseInt(input.match(regex_[index])[1]);
+          user_name = input.match(regex_[index])[2];
+          cc_.call(num_, user_name);
+          break;
+        case 'prof_id':
+          message_ = user_name + "'s id: " + user_id;
+          message_.post_text();
+          break;
+        case 'sexy_pic':
+          "https://groupme.com/join_group/21845882/OFir1M".post_text();
+          break;
+        case 'start_war':
+          do_it = is_admin(user_id);
+          if (do_it) {
+            num_ = parseInt(input.match(regex_[index])[1]);
+            enemy_name_ = input.match(regex_[index])[2];
+            cc_.start_war(num_, enemy_name_);
+          } else {
+            ("Only admins can start new war, @" + user_name).post_text();
+          }
+          break;
+        case 'set_code':
+          do_it = is_admin(user_id);
+          if (do_it) {
+            db_old_cc_ = fetch_cc();
+            new_cc_ = input.match(regex_[index])[1];
+            save_cc(new_cc_);
+            message_ = "Old code -" + db_old_cc_  + "-\nNew code -" + new_cc_ + "-"
+            message_.post_text();
+          } else {
+            ("Only admins can set Clash Caller code, @" + user_name).post_text();
           }
         }
 

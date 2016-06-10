@@ -41,6 +41,26 @@ $ heroku addons:create cleardb:ignite
 ```
 BOT_ID="YOUR_BOT_ID_HERE"
 ```
+
+ - Call timer values for settings:
+```
+0: none
+-2: (1/2) flex timer
+-4: (1/4) flex timer
+1: 1 hour
+2: 2 hours
+3: 3 hours
+4: 4 hours
+5: 5 hours
+6: 6 hours
+7: 7 hours
+8: 8 hours
+9: 9 hours
+10: 10 hours
+12: 12 hours
+24: 24 hours
+```
+
  - ```clash_caller.js``` file for clan name (line 17) and call timer (line 18) settings:
 ```javascript
 var my_clan_name = "Your clan name here"; // Line 17

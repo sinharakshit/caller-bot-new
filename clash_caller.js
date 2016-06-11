@@ -14,11 +14,11 @@ db_url = process.env.CLEARDB_DATABASE_URL;
 var conn = mysql.createConnection(db_url);
 
 
-var my_clan_name = "Your clan name here"; // Your clan name
+var my_clan_name = "Elite Raiders"; // Your clan name
 var war_call_timer = 6; // Timer for calls. How long until a call expires.
 var user_name = "";
 var user_id = "";
-var caller_code = "";
+var caller_code = "mer77";
 
 String.prototype.post_text = function() {
   console.log("GM: " + this.valueOf());
